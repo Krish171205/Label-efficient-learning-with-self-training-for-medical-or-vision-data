@@ -1,0 +1,62 @@
+# ============================================================
+#  Self-Training Pipeline — Python Dependencies
+#  GPU target: NVIDIA GeForce RTX 4060 (Ada Lovelace, SM 8.9)
+#  CUDA target: 12.4  |  Python: 3.10 / 3.11 / 3.12
+# ============================================================
+#
+#  HOW TO INSTALL
+#  --------------
+#  1. Create & activate a virtual environment first:
+#       python -m venv venv
+#       venv\Scripts\activate
+#
+#  2. Install PyTorch WITH CUDA (must come first):
+#       pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+#
+#  3. Then install everything else:
+#       pip install -r requirements.txt
+#
+#  4. Verify GPU is visible:
+#       python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+# ============================================================
+
+# ---------- core deep-learning ----------
+# (torch, torchvision, torchaudio installed separately — see above)
+timm==1.0.9                   # pretrained vision backbones (ResNet, ViT, EfficientNet etc.)
+lightning==2.4.0              # PyTorch Lightning — cleaner training loops
+torchmetrics==1.4.3           # accuracy, AUROC, F1 etc. on GPU
+
+# ---------- self-supervised / contrastive ----------
+lightly==1.5.14               # SimCLR, MoCo, BYOL etc. ready-made frameworks
+
+# ---------- datasets ----------
+medmnist==3.0.2               # MedMNIST benchmark (auto-downloads 12 medical datasets)
+
+# ---------- image processing & augmentation ----------
+Pillow==11.0.0
+opencv-python==4.10.0.84      # needed for inpainting pretext task
+albumentations==1.4.21        # advanced augmentations (elastic, grid distortion etc.)
+
+# ---------- scientific / ML ----------
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.5.2           # metrics, KNN, core-set selection, uncertainty sampling
+scipy==1.14.1
+
+# ---------- visualization ----------
+matplotlib==3.9.3
+seaborn==0.13.2
+
+# ---------- experiment tracking ----------
+tensorboard==2.18.0
+wandb==0.18.7                 # optional — Weights & Biases (free tier available)
+
+# ---------- utilities ----------
+tqdm==4.67.1                  # progress bars
+pyyaml==6.0.2                 # config files
+rich==13.9.4                  # pretty console output
+einops==0.8.0                 # tensor reshaping (used by many vision models)
+
+# ---------- Jupyter (optional, for exploration) ----------
+jupyterlab==4.3.3
+ipywidgets==8.1.5

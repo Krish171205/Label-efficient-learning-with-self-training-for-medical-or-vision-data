@@ -1,0 +1,81 @@
+# ============================================================
+#  Default experiment configuration
+#  All hyperparameters for the self-training pipeline
+# ============================================================
+
+# --- Project ---
+project_name: "label-efficient-chestmnist"
+seed: 42
+
+# --- Device ---
+device:
+  cuda_visible_devices: "0"    # RTX 4060 is CUDA GPU 0
+  mixed_precision: true         # Always use FP16 on 8 GB VRAM
+
+# --- Dataset ---
+data:
+  dataset: "chestmnist"
+  root: "data"                  # Relative to project root
+  image_size: 224
+  num_classes: 14               # ChestMNIST has 14 disease labels
+  num_workers: 4                # 4 workers — stable on 16 GB RAM
+  pin_memory: true
+
+# --- Label fractions to evaluate ---
+# What percentage of training data gets human labels
+label_fractions: [0.01, 0.05, 0.10, 0.25]   # 1%, 5%, 10%, 25%
+
+# --- Training (shared defaults) ---
+training:
+  backbone: "resnet18"          # timm model name
+  pretrained_imagenet: true     # Start from ImageNet weights (baseline)
+  batch_size: 64
+  epochs: 30                    # Reduced for RTX 4060 speed
+  optimizer: "adam"
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"           # cosine annealing
+  early_stopping_patience: 10
+
+# --- SimCLR pretraining ---
+simclr:
+  epochs: 20                    # 20 epochs on 40K images = 800K samples seen
+  batch_size: 64                # 64×2 views = 128 effective (fits in 8 GB VRAM)
+  pretrain_subset: 40000        # Use 40K of 78K images (contrastive learning has diminishing returns)
+  temperature: 0.5              # NT-Xent loss temperature
+  projection_dim: 128           # SimCLR projection head output dim
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+
+# --- Pretext tasks ---
+pretext:
+  rotation:
+    epochs: 15                  # 15 epochs — rotation converges fast
+    pretrain_subset: 40000      # Use 40K of 78K images
+    batch_size: 64
+    learning_rate: 0.001
+  inpainting:
+    epochs: 20
+    batch_size: 32              # Smaller batch — reconstruction is memory-heavy
+    mask_size: 56               # Mask 56x56 patch (25% of 224x224)
+    learning_rate: 0.001
+
+# --- Self-training loop ---
+self_training:
+  num_rounds: 5                 # Max iterations of the loop
+  confidence_threshold: 0.95    # τ — min sigmoid prob to accept pseudo-label
+  adaptive_threshold: true      # Per-class adaptive thresholds
+  entropy_weight: 0.1           # Weight for entropy minimization loss
+  retrain_from_scratch: false   # false = fine-tune, true = retrain
+
+# --- Active learning ---
+active_learning:
+  budget: 1000                  # Number of images to label per round
+  strategy: "uncertainty"       # "uncertainty" or "coreset"
+
+# --- Logging ---
+logging:
+  tensorboard_dir: "outputs/runs"
+  checkpoint_dir: "outputs/checkpoints"
+  results_dir: "outputs/results"
+  log_every_n_steps: 50
