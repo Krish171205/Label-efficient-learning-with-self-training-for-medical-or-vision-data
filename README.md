@@ -79,31 +79,31 @@ venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 
 # Download dataset
-python dataset_download.py
+python scripts/dataset_download.py
 
 # Convert for multi-worker loading
-python convert_to_npy.py
+python scripts/convert_to_npy.py
 ```
 
 ### Run Full Pipeline
 ```bash
 # 1. Baseline (~10 min)
-python train_baseline.py
+python scripts/train_baseline.py
 
 # 2. SimCLR pretraining + fine-tune (~3.5h)
-python train_simclr.py
-python train_simclr_finetune.py
+python scripts/train_simclr.py
+python scripts/train_simclr_finetune.py
 
 # 3. Rotation pretext + fine-tune (~2.5h)
-python train_pretext.py --task rotation
-python train_pretext_finetune.py --task rotation
+python scripts/train_pretext.py --task rotation
+python scripts/train_pretext_finetune.py --task rotation
 
 # 4. Self-training (~1h each)
-python train_self_training.py --backbone imagenet
-python train_self_training.py --backbone simclr
+python scripts/train_self_training.py --backbone imagenet
+python scripts/train_self_training.py --backbone simclr
 
 # 5. Compare + generate plots
-python run_comparison.py
+python scripts/run_comparison.py
 ```
 
 ---
@@ -111,18 +111,18 @@ python run_comparison.py
 ## 📁 Project Structure
 
 ```
-├── train_baseline.py              # Supervised baseline (ImageNet transfer)
-├── train_simclr.py                # SimCLR contrastive pretraining
-├── train_simclr_finetune.py       # Fine-tune SimCLR backbone
-├── train_pretext.py               # Rotation / inpainting pretraining
-├── train_pretext_finetune.py      # Fine-tune pretext backbone
-├── train_self_training.py         # Self-training with pseudo-labels
-├── run_comparison.py              # Collect results + generate plots
-├── convert_to_npy.py              # One-time: npz → npy conversion
-├── dataset_download.py            # Download ChestMNIST dataset
-├── configs/
-│   └── default.yaml               # All hyperparameters
-├── src/
+├── scripts/                       # All executable scripts
+│   ├── train_baseline.py          # Supervised baseline (ImageNet transfer)
+│   ├── train_simclr.py            # SimCLR contrastive pretraining
+│   ├── train_simclr_finetune.py   # Fine-tune SimCLR backbone
+│   ├── train_pretext.py           # Rotation / inpainting pretraining
+│   ├── train_pretext_finetune.py  # Fine-tune pretext backbone
+│   ├── train_self_training.py     # Self-training with pseudo-labels
+│   ├── run_comparison.py          # Collect results + generate plots
+│   ├── convert_to_npy.py          # One-time: npz → npy conversion
+│   ├── dataset_download.py        # Download ChestMNIST dataset
+│   └── check_setup.py             # Verify environment
+├── src/                           # Library code (imported, not run directly)
 │   ├── data/
 │   │   ├── chest_mnist.py         # Data loading + label splitting
 │   │   └── lazy_dataset.py        # Memory-mapped dataset (Windows fix)
@@ -143,10 +143,14 @@ python run_comparison.py
 │       ├── device.py              # GPU setup + mixed precision
 │       ├── training.py            # Training / evaluation engine
 │       └── metrics.py             # AUROC, mAP, F1 metrics
+├── configs/
+│   └── default.yaml               # All hyperparameters
 ├── outputs/
 │   └── results/                   # JSON results + comparison plots
+├── docs/
+│   ├── EXPLAINED.md               # Plain-English explanation of everything
+│   └── WEBSITE_IDEAS.md           # Frontend/backend roadmap
 ├── PROJECT_CONTEXT.md             # Full project documentation
-├── EXPLAINED.md                   # Plain-English explanation of everything
 ├── SETUP_GUIDE.md                 # Environment setup instructions
 └── requirements.txt               # Pinned dependencies
 ```
@@ -159,7 +163,7 @@ python run_comparison.py
 - 78,468 training / 11,219 validation / 22,433 test images
 - 224 × 224 pixels, grayscale chest X-rays
 - 14 binary disease labels (multi-label classification)
-- Automatically downloaded by `dataset_download.py`
+- Automatically downloaded by `scripts/dataset_download.py`
 
 ---
 

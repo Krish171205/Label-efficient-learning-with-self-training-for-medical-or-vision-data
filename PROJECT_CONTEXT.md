@@ -497,45 +497,45 @@ Test:    AUROC 0.7807
 venv\Scripts\activate
 
 # Step 0: One-time data prep (~2 min)
-python dataset_download.py                        # Download ChestMNIST
-python convert_to_npy.py                          # .npz → .npy for workers
+python scripts/dataset_download.py                        # Download ChestMNIST
+python scripts/convert_to_npy.py                          # .npz → .npy for workers
 
 # Step 1: Baseline (~10 min)
-python train_baseline.py                          # → AUROC: 0.6738
+python scripts/train_baseline.py                          # → AUROC: 0.6738
 
 # Step 2: SimCLR (~3.5h total)
-python train_simclr.py                            # Contrastive pretrain
-python train_simclr_finetune.py                   # → AUROC: 0.6702
+python scripts/train_simclr.py                            # Contrastive pretrain
+python scripts/train_simclr_finetune.py                   # → AUROC: 0.6702
 
 # Step 3: Rotation (~2.5h total)
-python train_pretext.py --task rotation           # Rotation pretrain
-python train_pretext_finetune.py --task rotation  # → AUROC: 0.6558
+python scripts/train_pretext.py --task rotation           # Rotation pretrain
+python scripts/train_pretext_finetune.py --task rotation  # → AUROC: 0.6558
 
 # Step 4: Self-training (~1h each)
-python train_self_training.py --backbone imagenet # → AUROC: 0.7807 🏆
-python train_self_training.py --backbone simclr   # → AUROC: 0.7626
+python scripts/train_self_training.py --backbone imagenet # → AUROC: 0.7807 🏆
+python scripts/train_self_training.py --backbone simclr   # → AUROC: 0.7626
 
 # Step 5: Compare + plots (~1 min)
-python run_comparison.py                          # Generates plots + JSON
+python scripts/run_comparison.py                          # Generates plots + JSON
 ```
 
 ---
 
-## 19. File Organization (Standard ML Convention)
+## 19. File Organization
 
 ```
 Internship/
-├── train_baseline.py              ← Entry point: supervised baseline
-├── train_simclr.py                ← Entry point: SimCLR pretraining
-├── train_simclr_finetune.py       ← Entry point: fine-tune SimCLR backbone
-├── train_pretext.py               ← Entry point: rotation/inpainting pretrain
-├── train_pretext_finetune.py      ← Entry point: fine-tune pretext backbone
-├── train_self_training.py         ← Entry point: self-training loop
-├── run_comparison.py              ← Entry point: collect results + plots
-├── convert_to_npy.py              ← Utility: one-time data conversion
-├── dataset_download.py            ← Utility: download ChestMNIST
-├── check_setup.py                 ← Utility: verify environment
-├── configs/default.yaml           ← Hyperparameters
+├── scripts/                       ← All executable scripts
+│   ├── train_baseline.py          ← Supervised baseline
+│   ├── train_simclr.py            ← SimCLR pretraining
+│   ├── train_simclr_finetune.py   ← Fine-tune SimCLR backbone
+│   ├── train_pretext.py           ← Rotation/inpainting pretrain
+│   ├── train_pretext_finetune.py  ← Fine-tune pretext backbone
+│   ├── train_self_training.py     ← Self-training loop
+│   ├── run_comparison.py          ← Collect results + plots
+│   ├── convert_to_npy.py          ← One-time data conversion
+│   ├── dataset_download.py        ← Download ChestMNIST
+│   └── check_setup.py             ← Verify environment
 ├── src/                           ← Library code (imported, NOT run directly)
 │   ├── data/                      ← Dataset classes + transforms
 │   ├── models/                    ← Classifier architecture
@@ -544,15 +544,18 @@ Internship/
 │   ├── self_training/             ← Pseudo-label generation engine
 │   ├── active_learning/           ← Uncertainty + core-set strategies
 │   └── utils/                     ← Config, device, training loop, metrics
+├── configs/default.yaml           ← Hyperparameters
 ├── outputs/
 │   ├── checkpoints/               ← Saved model weights (per experiment)
 │   └── results/                   ← JSON results + PNG comparison plots
 ├── data/                          ← Dataset files
 │   ├── chestmnist_224.npz         ← Compressed (3.9 GB)
 │   └── chestmnist_npy/            ← Uncompressed .npy (for mmap workers)
-├── PROJECT_CONTEXT.md             ← THIS FILE — full project documentation
+├── docs/                          ← Documentation
+│   ├── EXPLAINED.md               ← Plain-English explanation of everything
+│   └── WEBSITE_IDEAS.md           ← Frontend/backend roadmap
+├── PROJECT_CONTEXT.md             ← THIS FILE
 ├── SETUP_GUIDE.md                 ← Environment setup instructions
 └── requirements.txt               ← Pinned Python dependencies
 ```
 
-**Why scripts are in root**: `train_*.py` are entry points (what you run). `src/` contains importable library modules. This matches PyTorch, HuggingFace, and ML research repo conventions.

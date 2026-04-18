@@ -1,0 +1,80 @@
+# ============================================================
+#  Google Colab configuration (T4 GPU, 16 GB VRAM, 12 GB RAM)
+#  Optimized for better training quality on free tier
+# ============================================================
+
+# --- Project ---
+project_name: "label-efficient-chestmnist"
+seed: 42
+
+# --- Device ---
+device:
+  cuda_visible_devices: "0"
+  mixed_precision: true           # FP16 on T4
+
+# --- Dataset ---
+data:
+  dataset: "chestmnist"
+  root: "data"
+  image_size: 224
+  num_classes: 14
+  num_workers: 2                  # Colab has 2 CPU cores
+  pin_memory: true
+
+# --- Label fractions to evaluate ---
+label_fractions: [0.01, 0.05, 0.10, 0.25]
+
+# --- Training (shared defaults) ---
+training:
+  backbone: "resnet18"
+  pretrained_imagenet: true
+  batch_size: 128                 # T4 has 16 GB VRAM — can handle 128
+  epochs: 30
+  optimizer: "adam"
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  early_stopping_patience: 10
+
+# --- SimCLR pretraining ---
+simclr:
+  epochs: 50                      # 50 epochs — 2.5x more than local (fits in ~4hr session)
+  batch_size: 128                 # 128×2=256 effective — T4 can handle this
+  pretrain_subset: 78468          # ALL images — no subset on Colab
+  temperature: 0.5
+  projection_dim: 128
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+
+# --- Pretext tasks ---
+pretext:
+  rotation:
+    epochs: 30                    # 2x more than local
+    pretrain_subset: 78468        # ALL images
+    batch_size: 128
+    learning_rate: 0.001
+  inpainting:
+    epochs: 20
+    batch_size: 64
+    mask_size: 56
+    learning_rate: 0.001
+
+# --- Self-training loop ---
+self_training:
+  num_rounds: 5
+  confidence_threshold: 0.95
+  adaptive_threshold: true
+  entropy_weight: 0.1
+  retrain_from_scratch: false
+
+# --- Active learning ---
+active_learning:
+  budget: 1000
+  strategy: "uncertainty"
+
+# --- Logging ---
+logging:
+  tensorboard_dir: "outputs/runs"
+  checkpoint_dir: "outputs/checkpoints"
+  results_dir: "outputs/results"
+  log_every_n_steps: 50

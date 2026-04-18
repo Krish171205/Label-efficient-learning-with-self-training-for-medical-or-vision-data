@@ -56,6 +56,7 @@ tqdm==4.67.1                  # progress bars
 pyyaml==6.0.2                 # config files
 rich==13.9.4                  # pretty console output
 einops==0.8.0                 # tensor reshaping (used by many vision models)
+grad-cam>=1.5.0               # Grad-CAM heatmaps for disease localization
 
 # ---------- Jupyter (optional, for exploration) ----------
 jupyterlab==4.3.3
