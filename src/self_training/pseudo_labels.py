@@ -16,7 +16,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from src.utils.device import get_amp_context
+from src.utils.device import get_amp_context, unwrap_model
 from src.utils.metrics import CHEST_LABELS
 
 
@@ -59,7 +59,7 @@ def generate_pseudo_labels(model, unlabeled_loader: DataLoader, device: torch.de
         images = images.to(device, non_blocking=True)
         
         with amp_context:
-            probs = model.predict_proba(images)  # (B, 14), sigmoid probabilities
+            probs = unwrap_model(model).predict_proba(images)  # (B, 14), sigmoid probabilities
         
         all_probs.append(probs.cpu().numpy())
         

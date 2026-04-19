@@ -19,7 +19,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed, wrap_model
+from src.utils.device import setup_device, set_seed, wrap_model, unwrap_model
 from src.utils.metrics import compute_multilabel_metrics, print_metrics
 from src.utils.training import (
     train_one_epoch, evaluate, build_optimizer,
@@ -105,7 +105,7 @@ def main():
     # ---- Phase 1: Linear Probe ----
     if freeze_epochs > 0:
         print(f"\n--- Phase 1: Linear Probe ({freeze_epochs} epochs, backbone frozen) ---")
-        model.freeze_backbone()
+        unwrap_model(model).freeze_backbone()
         optimizer = build_optimizer(model, cfg)
         
         for epoch in range(freeze_epochs):
@@ -123,7 +123,7 @@ def main():
     
     # ---- Phase 2: Full Fine-tuning ----
     print(f"\n--- Phase 2: Full Fine-tuning ({epochs} epochs) ---")
-    model.unfreeze_backbone()
+    unwrap_model(model).unfreeze_backbone()
     
     optimizer = build_optimizer(model, cfg)
     scheduler = build_scheduler(optimizer, cfg)
