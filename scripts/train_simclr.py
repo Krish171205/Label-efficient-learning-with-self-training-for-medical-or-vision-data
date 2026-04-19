@@ -98,7 +98,8 @@ def main():
     # ---- Kornia Augmentation Module ----
     kornia_transform = KorniaDualViewTransform(image_size=cfg.data.image_size)
     kornia_transform = kornia_transform.to(device)
-    kornia_transform = wrap_model(kornia_transform)
+    # Kornia must NOT be wrapped in DataParallel. It runs on cuda:0 globally for the 
+    # batch before sending the chunks iteratively through the wrapped ResNet.
     
     # ---- Loss, Optimizer, Scheduler ----
     criterion = NTXentLoss(temperature=cfg.simclr.temperature)
