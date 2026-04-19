@@ -110,7 +110,7 @@ def train_one_round(model, train_loader, val_loader, optimizer, scheduler,
     
     # Restore best model from this round
     if best_state is not None:
-        model.load_state_dict(best_state)
+        unwrap_model(model).load_state_dict(best_state)
     
     return {"best_auroc": best_auroc, "history": history}
 

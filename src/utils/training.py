@@ -216,7 +216,7 @@ def load_checkpoint(model, path: str, optimizer=None, device: torch.device = Non
         Dict with saved metrics and epoch
     """
     checkpoint = torch.load(path, map_location=device, weights_only=False)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    unwrap_model(model).load_state_dict(checkpoint["model_state_dict"])
     
     if optimizer is not None and "optimizer_state_dict" in checkpoint:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
