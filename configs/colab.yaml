@@ -9,7 +9,7 @@ seed: 42
 
 # --- Device ---
 device:
-  cuda_visible_devices: "0"
+  cuda_visible_devices: "0,1"     # Use both T4 GPUs
   mixed_precision: true           # FP16 on T4
 
 # --- Dataset ---
@@ -28,7 +28,7 @@ label_fractions: [0.01, 0.05, 0.10, 0.25]
 training:
   backbone: "resnet18"
   pretrained_imagenet: true
-  batch_size: 128                 # T4 has 16 GB VRAM — can handle 128
+  batch_size: 256                 # 128 per GPU × 2 GPUs = 256 effective
   epochs: 30
   optimizer: "adam"
   learning_rate: 0.001
@@ -38,8 +38,8 @@ training:
 
 # --- SimCLR pretraining ---
 simclr:
-  epochs: 50                      # 50 epochs — 2.5x more than local (fits in ~4hr session)
-  batch_size: 128                 # 128×2=256 effective — T4 can handle this
+  epochs: 50                      # 50 epochs — 2.5x more than local
+  batch_size: 256                 # 128 per GPU × 2 views = 256 effective
   pretrain_subset: 78468          # ALL images — no subset on Colab
   temperature: 0.5
   projection_dim: 128
@@ -51,7 +51,7 @@ pretext:
   rotation:
     epochs: 30                    # 2x more than local
     pretrain_subset: 78468        # ALL images
-    batch_size: 128
+    batch_size: 256
     learning_rate: 0.001
   inpainting:
     epochs: 20

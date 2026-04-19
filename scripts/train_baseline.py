@@ -22,7 +22,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed
+from src.utils.device import setup_device, set_seed, wrap_model
 from src.utils.metrics import compute_multilabel_metrics, print_metrics
 from src.utils.training import (
     train_one_epoch, evaluate, build_optimizer, 
@@ -87,6 +87,7 @@ def main():
     # ---- Model ----
     model = build_classifier(cfg)
     model = model.to(device)
+    model = wrap_model(model)
     
     # ---- Optimizer & Scheduler ----
     optimizer = build_optimizer(model, cfg)
@@ -217,3 +218,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

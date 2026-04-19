@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed, get_amp_context, get_grad_scaler
+from src.utils.device import setup_device, set_seed, wrap_model, get_amp_context, get_grad_scaler
 from src.pretext.rotation import RotationModel, RotationDataset
 from src.pretext.inpainting import InpaintingModel, InpaintingDataset
 
@@ -69,6 +69,7 @@ def train_rotation(cfg, device, epochs, batch_size):
     # Model
     model = RotationModel(backbone_name=cfg.training.backbone)
     model = model.to(device)
+    model = wrap_model(model)
     
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -165,6 +166,7 @@ def train_inpainting(cfg, device, epochs, batch_size):
         image_size=cfg.data.image_size,
     )
     model = model.to(device)
+    model = wrap_model(model)
     
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -268,3 +270,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

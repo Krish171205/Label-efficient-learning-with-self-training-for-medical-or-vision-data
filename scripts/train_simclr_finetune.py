@@ -21,7 +21,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed
+from src.utils.device import setup_device, set_seed, wrap_model
 from src.utils.metrics import compute_multilabel_metrics, print_metrics
 from src.utils.training import (
     train_one_epoch, evaluate, build_optimizer,
@@ -99,6 +99,7 @@ def main():
     # Load SimCLR backbone
     model.load_backbone_weights(backbone_path)
     model = model.to(device)
+    model = wrap_model(model)
     
     # ---- Phase 1: Linear Probing (frozen backbone) ----
     if freeze_epochs > 0:
@@ -236,3 +237,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

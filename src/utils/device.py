@@ -13,26 +13,39 @@ import torch
 def setup_device(cuda_visible_devices: str = "0") -> torch.device:
     """
     Configure CUDA device and return the torch device.
-    
-    Args:
-        cuda_visible_devices: Which GPU index to expose to CUDA.
-                              "0" for RTX 4060 (only CUDA GPU on this system).
-    
-    Returns:
-        torch.device — either 'cuda' or 'cpu'
     """
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_visible_devices
     
     if torch.cuda.is_available():
         device = torch.device("cuda")
-        print(f"✓ Using GPU: {torch.cuda.get_device_name(0)}")
-        print(f"  VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+        n_gpus = torch.cuda.device_count()
+        for i in range(n_gpus):
+            name = torch.cuda.get_device_name(i)
+            vram = torch.cuda.get_device_properties(i).total_memory / 1e9
+            print(f"✓ GPU {i}: {name} ({vram:.1f} GB)")
+        if n_gpus > 1:
+            print(f"  → DataParallel will use all {n_gpus} GPUs")
         print(f"  CUDA: {torch.version.cuda}  |  cuDNN: {torch.backends.cudnn.version()}")
     else:
         device = torch.device("cpu")
         print("⚠ No CUDA GPU found — using CPU (training will be very slow)")
     
     return device
+
+
+def wrap_model(model):
+    """Wrap model in DataParallel if multiple GPUs are available."""
+    if torch.cuda.device_count() > 1:
+        print(f"✓ Wrapping model in DataParallel ({torch.cuda.device_count()} GPUs)")
+        model = torch.nn.DataParallel(model)
+    return model
+
+
+def unwrap_model(model):
+    """Get the underlying model (strips DataParallel wrapper if present)."""
+    if hasattr(model, 'module'):
+        return model.module
+    return model
 
 
 def set_seed(seed: int = 42):

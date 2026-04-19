@@ -28,7 +28,7 @@ import torch
 from torch.utils.data import DataLoader, Subset, ConcatDataset, TensorDataset
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed, get_amp_context, get_grad_scaler
+from src.utils.device import setup_device, set_seed, wrap_model, get_amp_context, get_grad_scaler
 from src.utils.metrics import compute_multilabel_metrics, print_metrics
 from src.utils.training import (
     train_one_epoch, evaluate, build_optimizer,
@@ -169,6 +169,7 @@ def main():
         print(f"⚠ Backbone {backbone_path} not found — using random init")
     
     model = model.to(device)
+    model = wrap_model(model)
     
     # ---- Self-Training Loop ----
     exp_name = f"self_training_{backbone_type}_lf{label_fraction}"
@@ -304,3 +305,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

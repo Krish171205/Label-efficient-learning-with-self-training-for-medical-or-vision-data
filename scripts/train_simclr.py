@@ -23,7 +23,7 @@ from tqdm import tqdm
 from lightly.loss import NTXentLoss
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed, get_amp_context, get_grad_scaler
+from src.utils.device import setup_device, set_seed, get_amp_context, get_grad_scaler, wrap_model, unwrap_model
 from src.simclr.model import SimCLRModel
 from src.simclr.augmentations import get_simclr_transform
 
@@ -92,6 +92,7 @@ def main():
         projection_dim=cfg.simclr.projection_dim,
     )
     model = model.to(device)
+    model = wrap_model(model)
     
     # ---- Loss, Optimizer, Scheduler ----
     criterion = NTXentLoss(temperature=cfg.simclr.temperature)
@@ -180,14 +181,14 @@ def main():
             # Save the full model (backbone + projection head)
             torch.save({
                 "epoch": epoch,
-                "model_state_dict": model.state_dict(),
+                "model_state_dict": unwrap_model(model).state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
                 "loss": best_loss,
             }, os.path.join(checkpoint_dir, "simclr_full.pth"))
             
             # Save JUST the backbone (this is what we load for classification)
             torch.save({
-                "backbone": model.get_backbone_state_dict(),
+                "backbone": unwrap_model(model).get_backbone_state_dict(),
                 "epoch": epoch,
                 "loss": best_loss,
             }, os.path.join(checkpoint_dir, "simclr_backbone.pth"))
