@@ -135,11 +135,12 @@ Or zip everything:
 
 ## Kaggle vs Local Comparison
 
-| Setting | Local (RTX 4060) | Kaggle (T4) |
-|---------|-----------------|-------------|
-| VRAM | 8 GB | **16 GB** |
-| Workers | 4 | **2** |
-| Batch size | 64 | **128** |
+| Setting | Local (RTX 4060) | Kaggle (Dual T4) |
+|---------|-----------------|------------------|
+| VRAM | 8 GB | **32 GB Total** |
+| GPU Usage | Single | **DataParallel (2)**|
+| CPU Bottleneck | None | **Bypassed via Kornia GPU Augmentations** |
+| Batch size | 64 | **512** (Dual GPU + Kornia) |
 | SimCLR epochs | 20 | **50** |
 | SimCLR data | 40K subset | **All 78K** |
 | Rotation epochs | 15 | **30** |

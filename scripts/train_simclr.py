@@ -25,7 +25,7 @@ from lightly.loss import NTXentLoss
 from src.utils.config import load_config
 from src.utils.device import setup_device, set_seed, get_amp_context, get_grad_scaler, wrap_model, unwrap_model
 from src.simclr.model import SimCLRModel
-from src.simclr.augmentations import get_simclr_transform
+from src.simclr.augmentations import get_simclr_transform, KorniaDualViewTransform
 
 
 def parse_args():
@@ -55,8 +55,9 @@ def main():
     print(f"{'='*60}\n")
     
     # ---- Data ----
-    # SimCLR transform returns (view1, view2) for each image
-    simclr_transform = get_simclr_transform(image_size=cfg.data.image_size)
+    # This base transform merely converts to RGB and creates a tensor.
+    # We offload the heavy augmentations to Kornia on the GPU.
+    base_transform = get_simclr_transform(image_size=cfg.data.image_size)
     
     from src.data.lazy_dataset import LazyChestMNIST
     from torch.utils.data import Subset
@@ -64,7 +65,7 @@ def main():
     
     full_dataset = LazyChestMNIST(
         root=cfg.data.root, split="train",
-        transform=simclr_transform, size=cfg.data.image_size
+        transform=base_transform, size=cfg.data.image_size
     )
     
     # Use a random subset for faster pretraining (contrastive learning
@@ -93,6 +94,11 @@ def main():
     )
     model = model.to(device)
     model = wrap_model(model)
+    
+    # ---- Kornia Augmentation Module ----
+    kornia_transform = KorniaDualViewTransform(image_size=cfg.data.image_size)
+    kornia_transform = kornia_transform.to(device)
+    kornia_transform = wrap_model(kornia_transform)
     
     # ---- Loss, Optimizer, Scheduler ----
     criterion = NTXentLoss(temperature=cfg.simclr.temperature)
@@ -141,12 +147,15 @@ def main():
                     leave=False, ncols=100)
         
         for batch in pbar:
-            # SimCLR transform returns ((view1, view2), labels)
-            # We ignore labels — SimCLR is self-supervised
-            (view1, view2), _ = batch
+            # Baseline dataloader returns (images, labels)
+            images, _ = batch
             
-            view1 = view1.to(device, non_blocking=True)
-            view2 = view2.to(device, non_blocking=True)
+            # Immediately move raw tensors to GPU
+            images = images.to(device, non_blocking=True)
+            
+            # Kornia applies massive parallel data augmentations directly on GPU
+            with torch.no_grad():
+                view1, view2 = kornia_transform(images)
             
             optimizer.zero_grad()
             

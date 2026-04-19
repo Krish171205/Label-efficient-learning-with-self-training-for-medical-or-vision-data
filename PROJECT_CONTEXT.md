@@ -68,6 +68,8 @@ Surveys in medical image analysis show that self-training and pseudo-labeling **
 
 **Implementation:** Uses the `lightly` library (v1.5.14) which provides ready-made SimCLR, MoCo, and BYOL frameworks.
 
+**GPU Optimizations (Kaggle/Colab):** SimCLR demands very heavy data augmentations (crop, jitter, blur). To prevent the CPU from bottlenecking the pipeline on cloud instances, **Kornia** is utilized to offload the entire data augmentation pipeline directly to the GPU in parallel, unlocking the true speed of Multi-GPU environments (e.g., Dual T4s).
+
 ---
 
 ### 6b. Pretext Tasks (Rotation Prediction & Inpainting)
