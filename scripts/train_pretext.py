@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed, wrap_model, get_amp_context, get_grad_scaler
+from src.utils.device import setup_device, set_seed, wrap_model, get_amp_context, get_grad_scaler, unwrap_model
 from src.pretext.rotation import RotationModel, RotationDataset
 from src.pretext.inpainting import InpaintingModel, InpaintingDataset
 
@@ -104,7 +104,7 @@ def train_rotation(cfg, device, epochs, batch_size):
             
             with amp_context:
                 logits = model(images)
-                loss = model.compute_loss(logits, rot_labels)
+                loss = unwrap_model(model).compute_loss(logits, rot_labels)
             
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -128,7 +128,7 @@ def train_rotation(cfg, device, epochs, batch_size):
             best_loss = avg_loss
             best_acc = acc
             torch.save({
-                "backbone": model.get_backbone_state_dict(),
+                "backbone": unwrap_model(model).get_backbone_state_dict(),
                 "epoch": epoch,
                 "loss": best_loss,
                 "accuracy": best_acc,
@@ -199,7 +199,7 @@ def train_inpainting(cfg, device, epochs, batch_size):
             
             with amp_context:
                 reconstructed = model(masked_input)
-                loss = model.compute_loss(reconstructed, target, mask)
+                loss = unwrap_model(model).compute_loss(reconstructed, target, mask)
             
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -217,7 +217,7 @@ def train_inpainting(cfg, device, epochs, batch_size):
         if avg_loss < best_loss:
             best_loss = avg_loss
             torch.save({
-                "backbone": model.get_backbone_state_dict(),
+                "backbone": unwrap_model(model).get_backbone_state_dict(),
                 "epoch": epoch,
                 "loss": best_loss,
             }, os.path.join(checkpoint_dir, "inpainting_backbone.pth"))

@@ -11,7 +11,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from src.utils.device import get_amp_context, get_grad_scaler
+from src.utils.device import get_amp_context, get_grad_scaler, unwrap_model
 
 
 def train_one_epoch(model, dataloader: DataLoader, optimizer, device: torch.device,
@@ -53,7 +53,7 @@ def train_one_epoch(model, dataloader: DataLoader, optimizer, device: torch.devi
         
         with amp_context:
             logits = model(images)
-            loss = model.compute_loss(logits, targets)
+            loss = unwrap_model(model).compute_loss(logits, targets)
         
         scaler.scale(loss).backward()
         scaler.step(optimizer)
@@ -102,7 +102,7 @@ def evaluate(model, dataloader: DataLoader, device: torch.device,
         
         with amp_context:
             logits = model(images)
-            loss = model.compute_loss(logits, targets)
+            loss = unwrap_model(model).compute_loss(logits, targets)
         
         probs = torch.sigmoid(logits)
         
@@ -195,7 +195,7 @@ def save_checkpoint(model, optimizer, epoch: int, metrics: dict, path: str):
     
     torch.save({
         "epoch": epoch,
-        "model_state_dict": model.state_dict(),
+        "model_state_dict": unwrap_model(model).state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "metrics": metrics,
     }, path)
