@@ -18,7 +18,7 @@ data:
   root: "data"
   image_size: 224
   num_classes: 14
-  num_workers: 2                  # Colab has 2 CPU cores
+  num_workers: 4                  # Colab has 2 CPU cores
   pin_memory: true
 
 # --- Label fractions to evaluate ---
