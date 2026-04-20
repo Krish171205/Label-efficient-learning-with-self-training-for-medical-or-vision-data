@@ -125,7 +125,14 @@ def main():
     print(f"\n--- Phase 2: Full Fine-tuning ({epochs} epochs, backbone unfrozen) ---")
     unwrap_model(model).unfreeze_backbone()
     
-    optimizer = build_optimizer(model, cfg)
+    # Use a 10x smaller learning rate for the backbone to prevent catastrophic forgetting
+    # of the precious SimCLR features, while keeping the standard LR for the head.
+    base_lr = cfg.training.learning_rate
+    optimizer = torch.optim.Adam([
+        {"params": unwrap_model(model).backbone.parameters(), "lr": base_lr * 0.1},
+        {"params": unwrap_model(model).classifier.parameters(), "lr": base_lr}
+    ], weight_decay=cfg.training.weight_decay)
+    
     scheduler = build_scheduler(optimizer, cfg)
     
     best_auroc = 0.0

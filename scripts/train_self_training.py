@@ -28,7 +28,7 @@ import torch
 from torch.utils.data import DataLoader, Subset, ConcatDataset, TensorDataset
 
 from src.utils.config import load_config
-from src.utils.device import setup_device, set_seed, wrap_model, get_amp_context, get_grad_scaler
+from src.utils.device import setup_device, set_seed, wrap_model, get_amp_context, get_grad_scaler, unwrap_model
 from src.utils.metrics import compute_multilabel_metrics, print_metrics
 from src.utils.training import (
     train_one_epoch, evaluate, build_optimizer,
