@@ -37,6 +37,8 @@ class KorniaDualViewTransform(nn.Module):
             K.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1, p=0.8),
             K.RandomGrayscale(p=0.2),
             K.RandomGaussianBlur(kernel_size=(23, 23), sigma=(0.1, 2.0), p=0.5),
+            K.RandomGaussianNoise(mean=0.0, std=0.05, p=0.5),
+            K.RandomErasing(scale=(0.02, 0.1), ratio=(0.3, 3.3), p=0.5),
             K.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
         )
 

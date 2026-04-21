@@ -90,8 +90,8 @@ def generate_pseudo_labels(model, unlabeled_loader: DataLoader, device: torch.de
         class_probs = all_probs[:, c]
         
         # Percentile-based: adapt to actual model confidence
-        upper = min(np.percentile(class_probs, 97), thresholds[c])  # Whichever is LOWER
-        lower = max(np.percentile(class_probs, 3), 1.0 - thresholds[c])  # Whichever is HIGHER
+        upper = min(np.percentile(class_probs, 95), thresholds[c])  # Whichever is LOWER
+        lower = max(np.percentile(class_probs, 5), 1.0 - thresholds[c])  # Whichever is HIGHER
         
         # Confident positive
         confident_pos = class_probs > upper
@@ -106,13 +106,13 @@ def generate_pseudo_labels(model, unlabeled_loader: DataLoader, device: torch.de
     # An image "passes" if it has at least one POSITIVE confident class
     confident_positive_per_image = np.zeros(len(all_probs))
     for c in range(14):
-        upper = min(np.percentile(all_probs[:, c], 97), thresholds[c])
+        upper = min(np.percentile(all_probs[:, c], 95), thresholds[c])
         confident_positive_per_image += (all_probs[:, c] > upper).astype(float)
     
     passed_mask = confident_positive_per_image >= 1
     
-    # Limit to top 20% most confident per round (gradual expansion)
-    max_per_round = max(500, int(0.2 * len(all_probs)))
+    # Limit to top 15% most confident per round (gradual expansion)
+    max_per_round = max(500, int(0.15 * len(all_probs)))
     if passed_mask.sum() > max_per_round:
         passed_indices = np.where(passed_mask)[0]
         max_confs = all_probs[passed_indices].max(axis=1)

@@ -38,7 +38,7 @@ training:
 
 # --- SimCLR pretraining ---
 simclr:
-  epochs: 50                      # 50 epochs — 2.5x more than local
+  epochs: 150                     # 150 epochs for maximum representation maturity
   batch_size: 512                 # 128 per GPU × 2 views = 256 effective
   pretrain_subset: 78468          # ALL images — no subset on Colab
   temperature: 0.5
@@ -61,7 +61,7 @@ pretext:
 
 # --- Self-training loop ---
 self_training:
-  num_rounds: 5
+  num_rounds: 10
   confidence_threshold: 0.95
   adaptive_threshold: true
   entropy_weight: 0.1
