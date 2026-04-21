@@ -106,7 +106,7 @@ def train_one_round(model, train_loader, val_loader, optimizer, scheduler,
         
         if val_metrics["mean_auroc"] > best_auroc:
             best_auroc = val_metrics["mean_auroc"]
-            best_state = copy.deepcopy(model.state_dict())
+            best_state = copy.deepcopy(unwrap_model(model).state_dict())
     
     # Restore best model from this round
     if best_state is not None:
