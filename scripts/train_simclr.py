@@ -130,14 +130,18 @@ def main():
     start_time = time.time()
     
     # ---- Resume from checkpoint ----
-    resume_path = os.path.join(checkpoint_dir, "simclr_full.pth")
-    if args.resume and os.path.exists(resume_path):
-        ckpt = torch.load(resume_path, map_location=device)
-        unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
-        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
-        start_epoch = ckpt["epoch"] + 1
-        best_loss = ckpt["loss"]
-        print(f"✓ Resumed from epoch {start_epoch} (loss: {best_loss:.4f})")
+    resume_path_latest = os.path.join(checkpoint_dir, "simclr_latest.pth")
+    resume_path_best = os.path.join(checkpoint_dir, "simclr_full.pth")
+    
+    if args.resume:
+        target_path = resume_path_latest if os.path.exists(resume_path_latest) else resume_path_best
+        if os.path.exists(target_path):
+            ckpt = torch.load(target_path, map_location=device)
+            unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
+            optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+            start_epoch = ckpt["epoch"] + 1
+            best_loss = ckpt["loss"]
+            print(f"✓ Resumed securely from epoch {start_epoch} using {os.path.basename(target_path)}")
     
     for epoch in range(start_epoch, epochs):
         model.train()
@@ -204,6 +208,14 @@ def main():
             }, os.path.join(checkpoint_dir, "simclr_backbone.pth"))
             
             print(f"  💾 Best model saved (loss: {best_loss:.4f})")
+            
+        # Unconditional Save: Protects against Kaggle Timeouts exactly at current epoch
+        torch.save({
+            "epoch": epoch,
+            "model_state_dict": unwrap_model(model).state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "loss": best_loss,
+        }, os.path.join(checkpoint_dir, "simclr_latest.pth"))
     
     elapsed = time.time() - start_time
     
