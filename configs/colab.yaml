@@ -38,7 +38,7 @@ training:
 
 # --- SimCLR pretraining ---
 simclr:
-  epochs: 50                      # Reverted to 50: Kaggle dual-GPU speeds safely permit 50 epochs
+  epochs: 100                     # 100 epochs for maximum representation maturity within Kaggle time limit
   batch_size: 512                 # 128 per GPU × 2 views = 256 effective
   pretrain_subset: 78468          # ALL images — no subset on Colab
   temperature: 0.5
@@ -61,7 +61,7 @@ pretext:
 
 # --- Self-training loop ---
 self_training:
-  num_rounds: 5
+  num_rounds: 8
   confidence_threshold: 0.95
   adaptive_threshold: true
   entropy_weight: 0.1
