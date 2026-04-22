@@ -1,2 +1,0 @@
-timestamp,script,config,backbone,label_fraction,epochs_trained,auroc,mAP,loss,data_size,batch_size,time_minutes,notes
-2026-04-21 05:45:56,train_simclr.py,configs/colab.yaml,resnet18,,50,,,5.0998,78468,512,603.5,SimCLR pretrain 

@@ -1,0 +1,80 @@
+# ============================================================
+#  Local RTX 4060 Laptop GPU (8 GB VRAM, 16 GB RAM)
+#  Tuned for maximum quality within VRAM constraints
+# ============================================================
+
+# --- Project ---
+project_name: "label-efficient-chestmnist"
+seed: 42
+
+# --- Device ---
+device:
+  cuda_visible_devices: "0"       # Single RTX 4060
+  mixed_precision: true           # FP16 — critical for 8 GB VRAM
+
+# --- Dataset ---
+data:
+  dataset: "chestmnist"
+  root: "data"
+  image_size: 224
+  num_classes: 14
+  num_workers: 4                  # 4 workers — stable on Windows
+  pin_memory: true
+
+# --- Label fractions to evaluate ---
+label_fractions: [0.01, 0.05, 0.10, 0.25]
+
+# --- Training (shared defaults) ---
+training:
+  backbone: "resnet18"
+  pretrained_imagenet: true
+  batch_size: 128                 # 128 fits comfortably in 8 GB with FP16
+  epochs: 30
+  optimizer: "adam"
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  early_stopping_patience: 10
+
+# --- SimCLR pretraining ---
+simclr:
+  epochs: 100                     # 100 epochs — full maturity, no time limit locally
+  batch_size: 256                 # 256 images × 2 views = safe in 8 GB with FP16
+  pretrain_subset: 78468          # ALL images
+  temperature: 0.5
+  projection_dim: 128
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+
+# --- Pretext tasks ---
+pretext:
+  rotation:
+    epochs: 30
+    pretrain_subset: 78468        # ALL images
+    batch_size: 128
+    learning_rate: 0.001
+  inpainting:
+    epochs: 20
+    batch_size: 64
+    mask_size: 56
+    learning_rate: 0.001
+
+# --- Self-training loop ---
+self_training:
+  num_rounds: 10                  # 10 rounds with 15% bites
+  confidence_threshold: 0.95
+  adaptive_threshold: true
+  entropy_weight: 0.1
+  retrain_from_scratch: false
+
+# --- Active learning ---
+active_learning:
+  budget: 1000
+  strategy: "uncertainty"
+
+# --- Logging ---
+logging:
+  tensorboard_dir: "outputs/runs"
+  checkpoint_dir: "outputs/checkpoints"
+  results_dir: "outputs/results"
+  log_every_n_steps: 50

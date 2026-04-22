@@ -40,7 +40,12 @@ def load_results(results_dir: str, experiment_name: str) -> dict:
 
 
 def main():
-    cfg = load_config("configs/default.yaml")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="configs/default.yaml")
+    args = parser.parse_args()
+    
+    cfg = load_config(args.config)
     results_dir = cfg.logging.results_dir
     label_fraction = cfg.label_fractions[0]  # 0.01
     
