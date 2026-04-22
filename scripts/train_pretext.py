@@ -34,10 +34,11 @@ def parse_args():
                         help="Which pretext task to train")
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     return parser.parse_args()
 
 
-def train_rotation(cfg, device, epochs, batch_size):
+def train_rotation(cfg, device, epochs, batch_size, resume=False):
     """Train rotation prediction pretext task."""
     
     # Load raw dataset (no transforms — RotationDataset handles it)
@@ -86,8 +87,20 @@ def train_rotation(cfg, device, epochs, batch_size):
     
     best_loss = float("inf")
     best_acc = 0.0
+    start_epoch = 0
     
-    for epoch in range(epochs):
+    # ---- Resume from checkpoint ----
+    resume_path = os.path.join(checkpoint_dir, "rotation_latest.pth")
+    if resume and os.path.exists(resume_path):
+        ckpt = torch.load(resume_path, map_location=device, weights_only=False)
+        unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        start_epoch = ckpt["epoch"] + 1
+        best_loss = ckpt.get("loss", float("inf"))
+        best_acc = ckpt.get("accuracy", 0.0)
+        print(f"Resumed rotation from epoch {start_epoch}")
+    
+    for epoch in range(start_epoch, epochs):
         model.train()
         running_loss = 0.0
         correct = 0
@@ -135,8 +148,10 @@ def train_rotation(cfg, device, epochs, batch_size):
             }, os.path.join(checkpoint_dir, "rotation_backbone.pth"))
             print(f"  💾 Best model saved (loss: {best_loss:.4f}, acc: {best_acc:.4f})")
         
-        # Unconditional save: protects against crashes
+        # Unconditional save: full state for resume
         torch.save({
+            "model_state_dict": unwrap_model(model).state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
             "backbone": unwrap_model(model).get_backbone_state_dict(),
             "epoch": epoch,
             "loss": avg_loss,
@@ -258,7 +273,7 @@ def main():
     start_time = time.time()
     
     if task == "rotation":
-        best_loss, best_acc, ckpt_dir = train_rotation(cfg, device, epochs, batch_size)
+        best_loss, best_acc, ckpt_dir = train_rotation(cfg, device, epochs, batch_size, resume=args.resume)
     else:
         best_loss, best_acc, ckpt_dir = train_inpainting(cfg, device, epochs, batch_size)
     

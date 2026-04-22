@@ -41,6 +41,7 @@ def parse_args():
                         help="Path to SimCLR backbone checkpoint")
     parser.add_argument("--freeze_epochs", type=int, default=5,
                         help="Number of epochs to freeze backbone (linear probe) before unfreezing")
+    parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     return parser.parse_args()
 
 
@@ -139,6 +140,7 @@ def main():
     best_auroc = 0.0
     patience_counter = 0
     results_history = []
+    start_epoch = 0
     
     checkpoint_dir = os.path.join(
         cfg.logging.checkpoint_dir,
@@ -146,9 +148,19 @@ def main():
     )
     os.makedirs(checkpoint_dir, exist_ok=True)
     
+    # ---- Resume from checkpoint ----
+    resume_path = os.path.join(checkpoint_dir, "latest_model.pth")
+    if args.resume and os.path.exists(resume_path):
+        ckpt = torch.load(resume_path, map_location=device, weights_only=False)
+        unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        start_epoch = ckpt["epoch"] + 1
+        best_auroc = ckpt.get("metrics", {}).get("auroc", 0.0)
+        print(f"Resumed SimCLR finetune from epoch {start_epoch}")
+    
     start_time = time.time()
     
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         train_metrics = train_one_epoch(
             model, train_loader, optimizer, device,
             epoch, epochs, use_amp=cfg.device.mixed_precision

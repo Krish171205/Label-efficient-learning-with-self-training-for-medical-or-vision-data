@@ -64,9 +64,9 @@ def install_dependencies():
     verify = subprocess.run(
         [sys.executable, "-c", 
          "import torch; assert torch.cuda.is_available(), 'NO GPU'; "
-         "print(f'  ✓ GPU: {torch.cuda.get_device_name(0)}'); "
-         "print(f'  ✓ VRAM: {torch.cuda.get_device_properties(0).total_memory/1e9:.1f} GB'); "
-         "print(f'  ✓ CUDA: {torch.version.cuda}')"],
+         "print(f'  OK GPU: {torch.cuda.get_device_name(0)}'); "
+         "print(f'  OK VRAM: {torch.cuda.get_device_properties(0).total_memory/1e9:.1f} GB'); "
+         "print(f'  OK CUDA: {torch.version.cuda}')"],
         capture_output=True, text=True,
     )
     if verify.returncode != 0:
@@ -130,31 +130,31 @@ def main():
     steps = [
         (1, "Baseline (ImageNet Transfer Learning)", [
             sys.executable, "-u", "scripts/train_baseline.py",
-            "--config", CONFIG,
+            "--config", CONFIG, "--resume",
         ]),
         (2, "SimCLR Contrastive Pretraining (100 epochs)", [
             sys.executable, "-u", "scripts/train_simclr.py",
-            "--config", CONFIG,
+            "--config", CONFIG, "--resume",
         ]),
         (3, "Rotation Pretext Pretraining (30 epochs)", [
             sys.executable, "-u", "scripts/train_pretext.py",
-            "--task", "rotation", "--config", CONFIG,
+            "--task", "rotation", "--config", CONFIG, "--resume",
         ]),
-        (4, "SimCLR → Fine-tune on labeled data", [
+        (4, "SimCLR -> Fine-tune on labeled data", [
             sys.executable, "-u", "scripts/train_simclr_finetune.py",
-            "--config", CONFIG,
+            "--config", CONFIG, "--resume",
         ]),
-        (5, "Rotation → Fine-tune on labeled data", [
+        (5, "Rotation -> Fine-tune on labeled data", [
             sys.executable, "-u", "scripts/train_pretext_finetune.py",
-            "--task", "rotation", "--config", CONFIG,
+            "--task", "rotation", "--config", CONFIG, "--resume",
         ]),
         (6, "Self-Training with ImageNet backbone (10 rounds)", [
             sys.executable, "-u", "scripts/train_self_training.py",
-            "--backbone", "imagenet", "--config", CONFIG,
+            "--backbone", "imagenet", "--config", CONFIG, "--resume",
         ]),
         (7, "Self-Training with SimCLR backbone (10 rounds)", [
             sys.executable, "-u", "scripts/train_self_training.py",
-            "--backbone", "simclr", "--config", CONFIG,
+            "--backbone", "simclr", "--config", CONFIG, "--resume",
         ]),
         (8, "Generate Comparison Table + Plots", [
             sys.executable, "-u", "scripts/run_comparison.py",

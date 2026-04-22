@@ -52,6 +52,7 @@ def parse_args():
                         help="Number of self-training rounds")
     parser.add_argument("--epochs_per_round", type=int, default=20,
                         help="Training epochs per round")
+    parser.add_argument("--resume", action="store_true", help="Resume from last completed round")
     return parser.parse_args()
 
 
@@ -178,8 +179,20 @@ def main():
     
     all_round_results = []
     start_time = time.time()
+    start_round = 0
     
-    for round_num in range(num_rounds):
+    # ---- Resume from last completed round ----
+    if args.resume:
+        for r in range(num_rounds - 1, -1, -1):
+            rpath = os.path.join(checkpoint_dir, f"round_{r}.pth")
+            if os.path.exists(rpath):
+                ckpt = torch.load(rpath, map_location=device, weights_only=False)
+                unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
+                start_round = r + 1
+                print(f"Resumed self-training from after round {r} (AUROC: {ckpt.get('metrics',{}).get('auroc','?')})")
+                break
+    
+    for round_num in range(start_round, num_rounds):
         print(f"\n{'─'*60}")
         print(f"  ROUND {round_num}/{num_rounds-1}")
         print(f"  Labeled pool: {len(dataset.labeled_indices)} images")

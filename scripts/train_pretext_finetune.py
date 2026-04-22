@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--backbone_path", type=str, default=None)
     parser.add_argument("--freeze_epochs", type=int, default=5)
+    parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     return parser.parse_args()
 
 
@@ -139,14 +140,25 @@ def main():
     best_auroc = 0.0
     patience_counter = 0
     results_history = []
+    start_epoch = 0
     
     exp_name = f"pretext_{task}_lf{label_fraction}"
     checkpoint_dir = os.path.join(cfg.logging.checkpoint_dir, exp_name)
     os.makedirs(checkpoint_dir, exist_ok=True)
     
+    # ---- Resume from checkpoint ----
+    resume_path = os.path.join(checkpoint_dir, "latest_model.pth")
+    if args.resume and os.path.exists(resume_path):
+        ckpt = torch.load(resume_path, map_location=device, weights_only=False)
+        unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        start_epoch = ckpt["epoch"] + 1
+        best_auroc = ckpt.get("metrics", {}).get("auroc", 0.0)
+        print(f"Resumed pretext finetune from epoch {start_epoch}")
+    
     start_time = time.time()
     
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         train_metrics = train_one_epoch(
             model, train_loader, optimizer, device,
             epoch, epochs, use_amp=cfg.device.mixed_precision

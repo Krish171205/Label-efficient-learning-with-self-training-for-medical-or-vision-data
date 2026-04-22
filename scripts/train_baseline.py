@@ -42,6 +42,7 @@ def parse_args():
                         help="Override number of epochs")
     parser.add_argument("--batch_size", type=int, default=None,
                         help="Override batch size")
+    parser.add_argument("--resume", action="store_true", help="Resume from last checkpoint")
     return parser.parse_args()
 
 
@@ -97,6 +98,7 @@ def main():
     best_auroc = 0.0
     patience_counter = 0
     results_history = []
+    start_epoch = 0
     
     checkpoint_dir = os.path.join(
         cfg.logging.checkpoint_dir, 
@@ -104,9 +106,23 @@ def main():
     )
     os.makedirs(checkpoint_dir, exist_ok=True)
     
+    # ---- Resume from checkpoint ----
+    resume_path = os.path.join(checkpoint_dir, "latest_model.pth")
+    if args.resume and os.path.exists(resume_path):
+        import torch
+        ckpt = torch.load(resume_path, map_location=device, weights_only=False)
+        from src.utils.device import unwrap_model
+        unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        start_epoch = ckpt["epoch"] + 1
+        best_auroc = ckpt.get("metrics", {}).get("auroc", 0.0)
+        print(f"Resumed from epoch {start_epoch} (best AUROC: {best_auroc:.4f})")
+        if start_epoch >= epochs:
+            print(f"Already completed {epochs} epochs. Skipping to evaluation.")
+    
     start_time = time.time()
     
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         # Train
         train_metrics = train_one_epoch(
             model, train_loader, optimizer, device,

@@ -18,7 +18,7 @@ data:
   root: "data"
   image_size: 224
   num_classes: 14
-  num_workers: 4                  # 4 workers — stable on Windows
+  num_workers: 0                  # 0 on Windows — avoids shared memory crashes
   pin_memory: true
 
 # --- Label fractions to evaluate ---
