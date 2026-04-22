@@ -37,7 +37,7 @@ def main():
         return
     
     print(f"  GPU name:        {torch.cuda.get_device_name(0)}")
-    print(f"  VRAM:            {torch.cuda.get_device_properties(0).total_mem / 1e9:.1f} GB")
+    print(f"  VRAM:            {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
     print(f"  CUDA version:    {torch.version.cuda}")
     
     # Check Kornia (GPU augmentation library)
@@ -68,7 +68,7 @@ def main():
         
         elapsed = time.time() - start
         vram_used = torch.cuda.memory_allocated(0) / 1e9
-        vram_total = torch.cuda.get_device_properties(0).total_mem / 1e9
+        vram_total = torch.cuda.get_device_properties(0).total_memory / 1e9
         
         print(f"\r  ⚡ {elapsed:.0f}/30s | Iterations: {iterations} | "
               f"VRAM: {vram_used:.1f}/{vram_total:.1f} GB", end="", flush=True)
