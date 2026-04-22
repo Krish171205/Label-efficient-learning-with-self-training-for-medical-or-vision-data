@@ -187,6 +187,13 @@ def main():
         if patience_counter >= cfg.training.early_stopping_patience:
             print(f"\n⏹ Early stopping after {epoch+1} epochs")
             break
+        
+        # Unconditional save: protects against crashes
+        save_checkpoint(
+            model, optimizer, epoch,
+            {"auroc": val_metrics["mean_auroc"]},
+            os.path.join(checkpoint_dir, "latest_model.pth")
+        )
     
     elapsed = time.time() - start_time
     

@@ -5,6 +5,7 @@ Just run this one file and walk away:
     python scripts/run_full_pipeline.py
 
 It will:
+0. Install all dependencies (including CUDA PyTorch)
 1. Train the ImageNet baseline
 2. Pretrain SimCLR (100 epochs) 
 3. Pretrain Rotation (30 epochs)
@@ -27,6 +28,55 @@ os.chdir(PROJECT_ROOT)
 sys.path.insert(0, PROJECT_ROOT)
 
 CONFIG = "configs/local_4060.yaml"
+
+
+def install_dependencies():
+    """Install PyTorch with CUDA and all other requirements."""
+    print(f"\n{'='*70}")
+    print(f"  STEP 0: Installing Dependencies")
+    print(f"{'='*70}\n")
+    
+    # Step 0a: Install PyTorch with CUDA 12.4 support
+    print("  Installing PyTorch with CUDA 12.4...")
+    result = subprocess.run([
+        sys.executable, "-m", "pip", "install",
+        "torch", "torchvision", "torchaudio",
+        "--index-url", "https://download.pytorch.org/whl/cu124",
+        "--quiet",
+    ])
+    if result.returncode != 0:
+        print("❌ Failed to install PyTorch with CUDA!")
+        print("   Try manually: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124")
+        sys.exit(1)
+    
+    # Step 0b: Install everything else from requirements.txt
+    print("  Installing remaining dependencies...")
+    result = subprocess.run([
+        sys.executable, "-m", "pip", "install",
+        "-r", "requirements.txt", "--quiet",
+    ])
+    if result.returncode != 0:
+        print("❌ Failed to install requirements.txt!")
+        sys.exit(1)
+    
+    # Step 0c: Verify GPU is actually visible
+    print("\n  Verifying GPU access...")
+    verify = subprocess.run(
+        [sys.executable, "-c", 
+         "import torch; assert torch.cuda.is_available(), 'NO GPU'; "
+         "print(f'  ✓ GPU: {torch.cuda.get_device_name(0)}'); "
+         "print(f'  ✓ VRAM: {torch.cuda.get_device_properties(0).total_mem/1e9:.1f} GB'); "
+         "print(f'  ✓ CUDA: {torch.version.cuda}')"],
+        capture_output=True, text=True,
+    )
+    if verify.returncode != 0:
+        print("❌ PyTorch installed but CANNOT see your GPU!")
+        print("   Your PyTorch may still be CPU-only.")
+        print(f"   Error: {verify.stderr}")
+        sys.exit(1)
+    
+    print(verify.stdout)
+    print("  ✅ All dependencies installed successfully!\n")
 
 
 def run_step(step_num: int, description: str, command: list):
@@ -73,6 +123,9 @@ def main():
 ║  No time limit. Let it run until completion.                     ║
 ╚══════════════════════════════════════════════════════════════════╝
     """)
+    
+    # Step 0: Install dependencies and verify GPU
+    install_dependencies()
     
     steps = [
         (1, "Baseline (ImageNet Transfer Learning)", [

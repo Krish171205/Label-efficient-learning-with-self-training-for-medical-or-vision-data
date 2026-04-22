@@ -134,6 +134,14 @@ def train_rotation(cfg, device, epochs, batch_size):
                 "accuracy": best_acc,
             }, os.path.join(checkpoint_dir, "rotation_backbone.pth"))
             print(f"  💾 Best model saved (loss: {best_loss:.4f}, acc: {best_acc:.4f})")
+        
+        # Unconditional save: protects against crashes
+        torch.save({
+            "backbone": unwrap_model(model).get_backbone_state_dict(),
+            "epoch": epoch,
+            "loss": avg_loss,
+            "accuracy": acc,
+        }, os.path.join(checkpoint_dir, "rotation_latest.pth"))
     
     return best_loss, best_acc, checkpoint_dir
 
