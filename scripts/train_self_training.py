@@ -189,7 +189,16 @@ def main():
                 ckpt = torch.load(rpath, map_location=device, weights_only=False)
                 unwrap_model(model).load_state_dict(ckpt["model_state_dict"])
                 start_round = r + 1
-                print(f"Resumed self-training from after round {r} (AUROC: {ckpt.get('metrics',{}).get('auroc','?')})")
+                # Restore dataset state (pseudo-labels from prior rounds)
+                metrics = ckpt.get("metrics", {})
+                if "labeled_indices" in metrics and "unlabeled_indices" in metrics:
+                    dataset.labeled_indices = metrics["labeled_indices"]
+                    dataset.unlabeled_indices = metrics["unlabeled_indices"]
+                    print(f"Resumed self-training from after round {r}")
+                    print(f"  Restored labeled pool: {len(dataset.labeled_indices)} images")
+                    print(f"  Restored unlabeled pool: {len(dataset.unlabeled_indices)} images")
+                else:
+                    print(f"Resumed self-training from after round {r} (dataset state not saved — pool reset)")
                 break
     
     for round_num in range(start_round, num_rounds):
@@ -241,10 +250,12 @@ def main():
             
             round_result["pseudo_stats"] = pseudo_result["stats"]
         
-        # Save round checkpoint
+        # Save round checkpoint (including dataset state for resume)
         save_checkpoint(
             model, optimizer, round_num,
-            {"auroc": round_result["best_auroc"], "round": round_num},
+            {"auroc": round_result["best_auroc"], "round": round_num,
+             "labeled_indices": dataset.labeled_indices,
+             "unlabeled_indices": dataset.unlabeled_indices},
             os.path.join(checkpoint_dir, f"round_{round_num}.pth")
         )
         

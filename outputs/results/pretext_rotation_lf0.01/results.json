@@ -1,0 +1,31 @@
+{
+  "experiment": "pretext_rotation_finetune",
+  "label_fraction": 0.01,
+  "n_labeled": 784,
+  "freeze_epochs": 5,
+  "best_val_auroc": 0.629777298377583,
+  "test_metrics": {
+    "mean_auroc": 0.6288249086822268,
+    "mAP": 0.08145535971786162,
+    "f1_macro": 0.0,
+    "f1_micro": 0.0,
+    "per_class_auroc": {
+      "Atelectasis": 0.6392578398421193,
+      "Cardiomegaly": 0.6476430655544164,
+      "Effusion": 0.72525559374659,
+      "Infiltration": 0.6300417418898029,
+      "Mass": 0.5678737946952086,
+      "Nodule": 0.5108963236659456,
+      "Pneumonia": 0.6194931047543286,
+      "Pneumothorax": 0.6432809550803111,
+      "Consolidation": 0.7329426612740465,
+      "Edema": 0.7594669054986333,
+      "Emphysema": 0.6124883012543063,
+      "Fibrosis": 0.5115964900818578,
+      "Pleural Thickening": 0.5769186867185708,
+      "Hernia": 0.6263932574950395
+    }
+  },
+  "training_history": [],
+  "training_time_minutes": 0.0
+}
