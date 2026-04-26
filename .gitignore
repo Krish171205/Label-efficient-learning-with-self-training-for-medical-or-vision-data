@@ -17,18 +17,56 @@ build/
 venv/
 env/
 .venv/
+.conda/
 
 # ============================================================
-# Dataset files (too large for GitHub — download via script)
+# Dataset files (too large for GitHub)
+# Download via: python scripts/dataset_download.py
 # ============================================================
 /data/
 *.npz
 *.npy
+*.h5
+*.hdf5
 
 # ============================================================
-# Model checkpoints (too large — retrain or download)
+# Model checkpoints (too large for GitHub)
+# Retrain with: python scripts/run_full_pipeline.py
 # ============================================================
 outputs/checkpoints/
+outputs/results/
+outputs/training_log.csv
+outputs/
+
+# ============================================================
+# Personal / Internal Docs (not for public repo)
+# ============================================================
+PROJECT_CONTEXT.md
+SETUP_GUIDE.md
+results.md
+research_paper_part1.md
+research_paper_part2.md
+research_paper_part3.md
+docs/EXPLAINED.md
+docs/WEBSITE_IDEAS.md
+docs/KAGGLE_GUIDE.md
+docs/self_training_loop_stepper.html
+docs/*.pdf
+docs/Internship*
+docs/Literature*
+
+# ============================================================
+# Local hardware-specific configs
+# ============================================================
+configs/local_4060.yaml
+configs/colab.yaml
+
+# ============================================================
+# Utility / Debug scripts (not part of pipeline)
+# ============================================================
+scripts/test_gpu.py
+scripts/training_log.py
+scripts/check_setup.py
 
 # ============================================================
 # IDE / Editor
@@ -52,3 +90,16 @@ desktop.ini
 # ============================================================
 .env
 *.log
+*.tmp
+
+# ============================================================
+# Research / personal documents
+# ============================================================
+"Research Papers"/
+Research Papers/
+research papers/
+
+# ============================================================
+# All outputs (results, checkpoints, logs)
+# ============================================================
+outputs/
